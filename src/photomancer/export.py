@@ -85,7 +85,7 @@ def export(settings: Settings, cat: Catalog, key: str) -> str:
             for x in recs:
                 fh.write(json.dumps(x, ensure_ascii=False) + "\n")
         cell = lambda s: " ".join(str(s or "").split()).replace("|", "/")  # noqa: E731
-        lines = [f"# Photo catalog", "", f"_{len(recs)} photos - exported {stamp} - archive root: "
+        lines = ["# Photo catalog", "", f"_{len(recs)} photos - exported {stamp} - archive root: "
                  f"`{settings.photo_root}`_", "", HOW_TO, "## Index", "",
                  "| path | genre / subgenre | caption | keywords | date |", "|---|---|---|---|---|"]
         lines += [f"| {cell(x['path'])} | {x['genre']} / {x['subgenre']} | {cell(x['caption'])} "

@@ -17,9 +17,9 @@ You do not need to load them or start the server: PhotoMancer does it before eve
 
 - **Windows**: run `PhotoMancer-<version>-Setup.exe` (no administrator rights). Tick
   *Create a desktop icon* if you want one; the Start-menu entry is on by default.
-- **macOS**: open the `.dmg`, drag PhotoMancer to Applications; first time, right-click →
+- **macOS** *(experimental)*: open the `.dmg`, drag PhotoMancer to Applications; first time, right-click →
   Open (the build is not signed by Apple).
-- **Linux**: `chmod +x` the AppImage and run it.
+- **Linux** *(experimental)*: `chmod +x` the AppImage and run it.
 - **Python**: `pipx install git+https://github.com/matteomarchionni/photomancer`, then
   `photomancer`.
 

@@ -38,7 +38,7 @@ same for a library of scientific papers, with the same panel.
 - **Backup** — catalogue, settings and code copied to a synced folder after every run.
 - **Configurable** — your own taxonomy (`taxonomy.yaml`), prompt, model and image size;
   results are stored per configuration and never mixed.
-- **Runs everywhere** — Windows, macOS and Linux; installers for all three.
+- **Runs everywhere** — Windows, macOS and Linux; installers for all three (macOS and Linux: experimental).
 
 ## Requirements
 
@@ -56,8 +56,12 @@ same for a library of scientific papers, with the same panel.
 | System | File | Notes |
 |---|---|---|
 | Windows | `PhotoMancer-<version>-Setup.exe` | per-user install, no admin rights; optional desktop / Start-menu shortcuts |
-| macOS | `PhotoMancer-<version>-macos-arm64.dmg` / `-x86_64.dmg` | drag to Applications; unsigned: first launch with right-click → Open |
-| Linux | `PhotoMancer-<version>-x86_64.AppImage` | `chmod +x` and run; the first-run window offers a menu entry |
+| macOS *(experimental)* | `PhotoMancer-<version>-macos-arm64.dmg` / `-x86_64.dmg` | drag to Applications; unsigned: first launch with right-click → Open |
+| Linux *(experimental)* | `PhotoMancer-<version>-x86_64.AppImage` | `chmod +x` and run; the first-run window offers a menu entry |
+
+> **macOS and Linux builds are experimental**: they are built automatically but have
+> not been tested on real machines yet. Please report problems in the issues; running
+> from Python (below) works everywhere.
 
 **With Python** (any system):
 
