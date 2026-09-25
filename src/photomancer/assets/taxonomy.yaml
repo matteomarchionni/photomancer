@@ -1,0 +1,166 @@
+# Photo taxonomy — controlled vocabulary for VLM classification
+# Version is stored with every result; bump it on any change.
+taxonomy_version: "1.0.0"
+
+# ---------------------------------------------------------------------------
+# PRIMARY GENRES (exactly one per image) and their SUBGENRES (exactly one)
+# Order matters: the model tends to favour genres listed first, so put your main
+# areas at the top.
+# ---------------------------------------------------------------------------
+genres:
+
+  landscape:
+    description: "Natural scenery is the subject; people, if any, are small elements."
+    subgenres: [mountain, alpine_high_altitude, coastal_seascape, open_sea, lake, river_waterfall,
+                forest_woodland, glacier_snow, desert_arid, volcanic, rural_countryside, night_landscape,
+                hills_valleys, canyon_gorge, wetland, badlands, intimate_landscape, other_landscape]
+
+  astrophotography:
+    description: "Night sky or celestial objects are the subject."
+    subgenres: [milky_way_nightscape, starry_nightscape, star_trails, deep_sky_nebula,
+                deep_sky_galaxy, deep_sky_cluster, deep_sky_narrowband, lunar, planetary, solar, solar_eclipse,
+                lunar_eclipse, aurora, comet, meteor, conjunction_wide_field,
+                noctilucent_clouds, calibration_frame, other_astro]
+
+  sky_atmospheric:
+    description: "An atmospheric phenomenon is THE subject (not just the backdrop of a landscape)."
+    subgenres: [sunset_sunrise_sky, storm_lightning, dramatic_clouds, rainbow,
+                halo_optical_phenomenon, fog_mist, other_atmospheric]
+
+  nature_wildlife:
+    description: "Wild animals or wild plants as subject, in natural setting, not macro scale."
+    subgenres: [birds, mammals, reptiles_amphibians, insects_arthropods, marine_aquatic,
+                plants_trees, flowers, fungi, animal_tracks_signs, other_nature]
+
+  macro_closeup:
+    description: "Close-up/macro scale; small subject fills the frame, very shallow depth of field."
+    subgenres: [insect_macro, flower_macro, plant_detail, fungi_macro, water_drops_ice,
+                texture_pattern, object_closeup, other_macro]
+
+  travel:
+    description: "Documents a visited place/culture: landmarks, markets, local scenes, travel moments."
+    subgenres: [landmark_monument, cultural_heritage, local_life, market, transport_journey,
+                tourist_scene, other_travel]
+
+  street:
+    description: "Candid, unposed public life, usually urban; people and moments are central."
+    subgenres: [candid_people, urban_scene, street_night, juxtaposition_humor,
+                shadows_geometry, other_street]
+
+  documentary_reportage:
+    description: "Tells a story or documents an event/activity/work in a factual way."
+    subgenres: [event_coverage, work_craft, social_issue, science_lab_fieldwork,
+                behind_the_scenes, other_documentary]
+
+  portrait:
+    description: "One or more people, aware/posed, as main subject."
+    subgenres: [individual, couple, group, environmental_portrait, headshot, selfie,
+                child_family, other_portrait]
+
+  events_celebrations:
+    description: "Private or public celebrations where the event itself is the context."
+    subgenres: [wedding, party_birthday, concert_performance, festival, ceremony_graduation,
+                conference_talk, other_event]
+
+  sports_action:
+    description: "Sport or physical action is the subject."
+    subgenres: [outdoor_sports, mountaineering_hiking, water_sports, team_sports,
+                motorsport, other_sports]
+
+  architecture_urban:
+    description: "Buildings, structures or cityscapes are the subject."
+    subgenres: [cityscape, urban_night, building_exterior, interior, historical_religious,
+                bridge_infrastructure, industrial, rural_architecture, other_architecture]
+
+  domestic_animals:
+    description: "Pets, farm animals or captive animals (zoo, aquarium)."
+    subgenres: [dog, cat, farm_animal, horse, zoo_captive, aquarium, other_domestic]
+
+  food_drink:
+    description: "Food or drink is the subject."
+    subgenres: [dish, drink, market_produce, cooking, other_food]
+
+  still_life_product:
+    description: "Arranged objects, products, photographic gear."
+    subgenres: [still_life, product, camera_gear, astro_gear, other_still_life]
+
+  abstract_fine_art:
+    description: "Form, color, texture or motion is the subject, not a recognizable scene."
+    subgenres: [abstract, minimalist, icm_motion_blur, long_exposure_art, reflection,
+                other_fine_art]
+
+  vehicles_transport:
+    description: "Vehicles as subject (not travel moments)."
+    subgenres: [car, train, aircraft, boat, bicycle_motorbike, other_vehicle]
+
+  utility:
+    description: "Non-artistic images: screenshots, documents, receipts, notes, reference photos, test shots."
+    subgenres: [screenshot, document_text, reference_photo, test_shot_blurry, other_utility]
+
+  other:
+    description: "Use ONLY when no genre above fits."
+    subgenres: [unclassifiable]
+
+# ---------------------------------------------------------------------------
+# DECISION RULES (embed in the prompt verbatim)
+# ---------------------------------------------------------------------------
+decision_rules:
+  - "Choose the genre of the MAIN SUBJECT, not of the location where the photo was taken."
+  - "landscape vs travel: natural scenery without cultural focus -> landscape; landmarks, local people, cultural scenes -> travel."
+  - "landscape vs sky_atmospheric: use sky_atmospheric only if the sky phenomenon dominates the frame and the land is secondary."
+  - "landscape vs astrophotography: if stars/Milky Way/celestial objects are visible and intentional -> astrophotography (e.g. milky_way_nightscape), even with a landscape foreground."
+  - "nature_wildlife vs macro_closeup: if the subject is small and fills the frame at close range -> macro_closeup."
+  - "nature_wildlife vs domestic_animals: pets, farm animals, zoo or aquarium animals -> domestic_animals."
+  - "street vs portrait: posed/aware subject -> portrait; candid public moment -> street."
+  - "street vs documentary_reportage: a series-like factual record of an activity/event -> documentary_reportage."
+  - "architecture_urban vs travel: building as design/structure -> architecture_urban; building as tourist landmark in context -> travel."
+  - "solar_eclipse: any phase of a solar eclipse, including partial phases and wide shots with foreground."
+  - "calibration_frame: flat, dark or bias frames (uniform gray/black/noise with no scene)."
+  - "Screenshots, documents, receipts, whiteboards -> utility, never other genres."
+  - "If genre_confidence < 0.4, still pick the best genre but keep confidence honest."
+
+# ---------------------------------------------------------------------------
+# ORTHOGONAL FACETS (independent of genre)
+# ---------------------------------------------------------------------------
+facets:
+  people_count_bin: ["0", "1", "2-5", "6-20", "20+"]
+  people_role: [none, main_subject, secondary_element, crowd, silhouette_small_figure]
+  animal_type: [none, bird, mammal, reptile_amphibian, insect_arthropod, fish_marine, pet, farm, other]
+  wild_or_domestic: [none, wild, domestic, captive]
+  setting: [outdoor, indoor, mixed, unknown]
+  time_of_day: [day, golden_hour, blue_hour, sunrise_sunset, twilight, night, unknown]
+  weather_sky: [clear, partly_cloudy, overcast, fog_mist, rain, snow, storm, not_visible]
+  season: [spring, summer, autumn, winter, unknown]
+  techniques: [long_exposure, black_and_white, panorama, hdr_bracketing, aerial_drone,
+               silhouette, shallow_dof_bokeh, high_key, low_key, reflection, star_tracking,
+               telephoto_compression, wide_angle, intentional_camera_movement, none]
+  utility_flag: [none, blurry, overexposed, underexposed, duplicate_candidate, calibration]
+
+# ---------------------------------------------------------------------------
+# NAMED COLOR PALETTE (for deterministic k-means mapping via CIEDE2000)
+# sRGB hex reference values; tune after pilot if needed.
+# ---------------------------------------------------------------------------
+color_palette:
+  black: "#000000"
+  dark_gray: "#404040"
+  gray: "#808080"
+  light_gray: "#C0C0C0"
+  white: "#FFFFFF"
+  red: "#C0392B"
+  dark_red: "#7B1E1E"
+  orange: "#E67E22"
+  amber_gold: "#D4A017"
+  yellow: "#F1C40F"
+  beige_sand: "#D8C3A5"
+  brown: "#7B4B2A"
+  olive: "#808000"
+  green: "#2E8B57"
+  dark_green: "#1E4D2B"
+  teal: "#138D90"
+  cyan: "#5DADE2"
+  sky_blue: "#87CEEB"
+  blue: "#1F5FA8"
+  navy: "#1B2A4A"
+  purple: "#6C3483"
+  magenta: "#C2185B"
+  pink: "#F4A6C0"

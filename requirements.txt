@@ -1,0 +1,12 @@
+# Tested with Python 3.13 on 2026-09-24; same list as pyproject.toml.
+# No extra install was needed on this PC; tkinter and sqlite3 ship with Python.
+pillow==11.1.0
+numpy==2.1.3
+scipy==1.15.3
+scikit-learn==1.6.1
+scikit-image==0.25.0
+pydantic==2.10.3
+PyYAML==6.0.2
+requests==2.32.3
+psutil
+pytest==8.3.4

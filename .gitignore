@@ -1,0 +1,19 @@
+# Code only. The database, caches, logs and reports live in data_dir (outside this
+# folder); config.yaml holds personal paths (template: src/photomancer/assets/config.example.yaml).
+config.yaml
+*.lnk
+
+# Python / builds
+__pycache__/
+*.pyc
+.pytest_cache/
+build/
+dist/
+*.egg-info/
+
+# Personal, never published (the defaults ship in src/photomancer/assets)
+LOCAL_NOTES.md
+local.cmd
+theme.css
+taxonomy.yaml
+photo_catalog_pipeline_brief.md

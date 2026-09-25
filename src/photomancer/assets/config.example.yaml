@@ -1,0 +1,92 @@
+# ==========================================================================
+# PhotoMancer - settings
+#
+# Every tunable lives here. The control panel edits the most common ones
+# (model, folders, concurrency, image size); the rest are edited by hand.
+# Relative paths are resolved against this file's folder.
+# ==========================================================================
+
+# The archive. Only ever read; XMP sidecars are written next to the JPEGs
+# only by "Write XMP" (or "Tag" with the write option on).
+photo_root: ''
+
+# Database, image cache, logs, reports, pilot. LOCAL disk on purpose: SQLite
+# on the Google Drive mount can be locked mid-run by the sync client.
+data_dir: ''   # empty = Documents\PhotoMancer data
+
+# Folder names skipped anywhere in the tree (case-insensitive).
+exclude_dirs: [photomancer_data, photomancer_backup, .tmp.drivedownload, .tmp.driveupload, $RECYCLE.BIN]
+
+# Backup after every run (catalog snapshot + settings + code), like BiblioMancer's
+# pipeline_backup. A synced folder; if it is inside photo_root, its folder
+# name must be in exclude_dirs (and in Immich's exclusion patterns). Empty = off.
+backup_dir: ''
+
+taxonomy_file: taxonomy.yaml
+# Empty = built-in prompt. A custom file may contain {taxonomy} where the
+# vocabulary goes; without it the vocabulary is appended.
+prompt_file: ''
+
+lmstudio:
+  # 127.0.0.1, not localhost: on Windows 'localhost' tries IPv6 first and every new
+  # connection waits ~2 s (measured 2.07 s vs 0.03 s per request)
+  base_url: http://127.0.0.1:1234/v1
+  lms_path: ''
+  model: qwen/qwen3.5-9b
+  # Context per simultaneous request: the model is loaded with this x vlm.concurrency
+  # (LM Studio splits the context between its parallel slots; a request needs ~3.4k).
+  context_per_request: 4096
+  ttl_s: 3600
+  # Measured at G1 (2026-09-24): "none" gives 0 reasoning tokens (~3 s/image).
+  # enable_thinking:false and /no_think do NOT stop Qwen3.5 reasoning here.
+  reasoning_effort: none
+  # Semantic search (Browse / Folders pages): embedding model installed in LM Studio
+  embedding_model: text-embedding-nomic-embed-text-v1.5
+
+vlm:
+  image_side: 1024          # long side sent to the model (768 or 1024; cache is 1024)
+  exif_context: true        # add a one-line EXIF summary to the request
+  temperature: 0.1
+  max_tokens: 600
+  concurrency: 4            # simultaneous requests (1-4); benchmark before raising
+  timeout_s: 180
+  http_retries: 3           # exponential backoff on HTTP / connection errors
+  max_attempts: 3           # runs after which a failing photo is given up
+  jpeg_quality: 90
+
+preprocess:
+  workers: 12               # CPU processes decoding / resizing / analysing
+  cache_side: 1024
+  thumb_side: 256
+  thumb_quality: 85
+
+exif:
+  long_exposure_s: 1.0
+  high_iso: 1600
+  telephoto_35mm: 200
+  # Used when a file has no FocalLengthIn35mmFormat tag (model string as in EXIF).
+  crop_factors: {}          # e.g. {'<Model as in EXIF>': 1.5}
+
+colors:
+  k: 5
+  sample_pixels: 20000
+  seed: 42
+  mono_chroma_p95: 10.0     # 95th-percentile chroma below this = monochrome
+  low_key_mean_L: 30
+  high_key_mean_L: 70
+  key_clip_share: 0.05      # low key: < 5 % of pixels brighter than L 70 (mirror for high key)
+
+dedup:
+  hamming_threshold: 6      # pHash bits; tune on the pilot
+  propagate: false          # copy labels from a group's representative (needs approval)
+
+xmp:
+  root: AI                  # every AI tag lives under this root
+  max_colors: 3
+  min_color_fraction: 0.12
+  keywords_as_tags: true    # also add free keywords as AI|Keyword|<kw> (Immich shows tags, not dc:subject)
+
+report:
+  low_confidence: 0.5
+  sample_per_genre: 12
+  seed: 42
