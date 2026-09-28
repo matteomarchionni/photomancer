@@ -24,6 +24,11 @@ setting…) with `nomic-embed-text`; your query is embedded the same way and com
 a bonus when a query word appears literally in the tags. The index is updated after every
 run (or with **Update search index**).
 
+Every query is embedded by LM Studio, so search by meaning needs it running. You do not
+have to start it: opening Browse (or searching in Folders) starts LM Studio's server and
+loads the small embedding model in the background — a few seconds on a fresh start, while
+the first search shows exact-word matches and then switches to meaning by itself.
+
 ## Folders
 
 **Folders** tells you which folders are about a topic.

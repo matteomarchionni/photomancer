@@ -109,7 +109,7 @@ def _rate(settings: Settings, theme: str, image: str) -> tuple[dict | None, str,
 
 def curate(settings: Settings, theme: str, top: int = 12, pool: int = 48, lm_setup: bool = True) -> int:
     from .pipeline import ensure_server, say
-    from .search import SearchIndex
+    from .search import SearchIndex, wake
     t0 = time.time()
     tax = load_taxonomy(settings.taxonomy_path)
     cfg = active_config(settings, tax)
@@ -120,6 +120,10 @@ def curate(settings: Settings, theme: str, top: int = 12, pool: int = 48, lm_set
         idx = SearchIndex(settings, cat, cfg["key"])
         if not len(idx):
             log.info("ERROR: the search index is empty - run Tag new photos / index first")
+            return 1
+        ok, why = wake(settings)
+        if not ok:
+            log.info("ERROR: search by meaning needs LM Studio: %s", why)
             return 1
         sc = idx.scores(theme)
         order = [i for i in np.argsort(-sc) if idx.shas[i] in rows][:pool]

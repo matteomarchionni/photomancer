@@ -2,12 +2,12 @@
 
 | Symptom | Cause / fix |
 |---|---|
-| "LM Studio off" in the sidebar | Normal: *Tag new photos* starts it. If that fails, open LM Studio once by hand. **Check setup** (Options → Maintenance) tests LM Studio, the model and three real photos. |
+| "LM Studio off" in the sidebar | Normal: *Tag new photos* starts it, and so do Browse, Folders and Curate when they need to search by meaning. If that fails, open LM Studio once by hand. **Check setup** (Options → Maintenance) tests LM Studio, the model and three real photos. |
 | "Model not available" / every photo fails | The model is not installed, or has no vision. Pick a vision model under *Options → Model and folders*. Do not load it by hand in LM Studio: PhotoMancer loads it with the right context. |
 | Some photos keep failing | After 3 attempts a photo is given up (the *Given up* tile; *Browse → Failed / untagged only* shows why). Tick *Retry photos that were given up* in Options. Corrupt or truncated JPEGs cannot be read. |
 | A run stopped in the middle | Nothing is lost: every result is saved as it lands. Press *Tag new photos* again. |
 | Tagging is slow | Check that reasoning is off (`reasoning_effort: none`), try `image_side: 768`, and `Simultaneous requests` 2–4 (benchmark: more is not always faster). ~20–28 photos/min is typical on a 12 GB GPU. |
-| "Semantic index not available" | The embedding model is missing or LM Studio is off. Install `nomic-embed-text-v1.5`; *Update search index* rebuilds it. Search falls back to exact words meanwhile. |
+| "Semantic index not available" / search stays on exact words | LM Studio could not be started, or the embedding model is not downloaded (the activity log says which). Install `nomic-embed-text-v1.5`; *Update search index* rebuilds it. Search falls back to exact words meanwhile. |
 | A sidecar was not written ("foreign" / "edited") | On purpose: PhotoMancer never overwrites a `.jpg.xmp` written by another program or edited since. `photomancer write --force` overrides this. |
 | Immich does not show the tags | Run the *Sidecar metadata* job in Immich (Administration → Jobs → Sidecar metadata → Discover / Sync) — see [tutorial 3](tutorials/03-xmp-immich-digikam.md). |
 | Immich shows the backup folder as photos | Add `**/photomancer_backup/**` (your backup folder's name) to the library's exclusion patterns. |

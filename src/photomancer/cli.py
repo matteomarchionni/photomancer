@@ -229,7 +229,11 @@ def _dispatch(a: argparse.Namespace, s) -> int:
         if a.cmd == "index":
             pipeline.update_search_index(s, cat, cfg["key"])
             return 0
-        from .search import SearchIndex, relevant, search_folders
+        from .search import SearchIndex, relevant, search_folders, wake
+        ok, why = wake(s)
+        if not ok:
+            print(f"Search by meaning needs LM Studio: {why}")
+            return 1
         idx = SearchIndex(s, cat, cfg["key"])
         paths: dict[str, list[str]] = {}
         for r in cat.q("SELECT sha256, path FROM files WHERE missing=0 AND sha256 IS NOT NULL "

@@ -164,10 +164,8 @@ def update_search_index(settings: Settings, cat: Catalog, key: str) -> None:
     """Embed newly tagged photos for semantic search (never fails the run)."""
     say("update search index")
     try:
-        up, _ids = lmstudio.server_up(settings.lm["base_url"])
-        if not up and settings.lm["lms_path"]:
-            lmstudio._run([settings.lm["lms_path"], "server", "start"], "start LM Studio server")
-        from .search import update_index
+        from .search import update_index, wake
+        wake(settings)                      # server + embedding model, if not up
         update_index(settings, cat, key)
     except Exception as exc:
         log.info("WARNING search index not updated (%s: %s) - search falls back to exact words "

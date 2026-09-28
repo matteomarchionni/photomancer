@@ -212,6 +212,13 @@ class App(DashboardApp):
     def lm_base_url(self):
         return self.cfg.lm["base_url"]
 
+    def embedding_target(self):
+        return self.cfg.lm["lms_path"], self.cfg.lm["embedding_model"]
+
+    def _embed_args(self):
+        lms, model = self.embedding_target()
+        return lms, self.lm_base_url(), model
+
     def job_env(self):
         env = super().job_env()
         env.pop("PHOTOMANCER_ROOT", None)
@@ -329,6 +336,7 @@ class App(DashboardApp):
 
     def load_catalog(self):
         self.browse_note.config(text="Loading the catalog…", fg=T.MUTED)
+        self.ensure_semantic()              # search by meaning needs LM Studio running
 
         def work():
             rows, err = [], ""
@@ -353,14 +361,13 @@ class App(DashboardApp):
 
     def _load_index(self, c, cat, key, n_tagged):
         """(Worker thread) load the semantic index; top it up if photos are missing."""
-        from ._shared.lmstudio import server_up, start_server
+        from ._shared.lmstudio import ensure_embedding
         from .search import SearchIndex, update_index
         idx = None
         try:
             idx = SearchIndex(c, cat, key)
             if len(idx) < n_tagged:
-                if not server_up(c.lm["base_url"])[0]:
-                    start_server(c.lm["lms_path"], out=lambda m: None)
+                ensure_embedding(c.lm["lms_path"], c.lm["base_url"], c.lm["embedding_model"])
                 missing = n_tagged - len(idx)
                 self.q.put(lambda: self.browse_note.config(
                     text=f"Indexing {missing} photo(s) for semantic search…", fg=T.MUTED))
@@ -383,10 +390,7 @@ class App(DashboardApp):
             return ({s: float(sc[i]) for i, s in enumerate(self.sidx.shas)},
                     {self.sidx.shas[i] for i in np.nonzero(hit)[0]}), ""
         except Exception as exc:
-            from ._shared.lmstudio import server_up
-            if not server_up(self.cfg.lm["base_url"])[0]:
-                return None, "LM Studio is off"
-            return None, type(exc).__name__
+            return None, self.semantic_retry(query, exc)
 
     def _catalog_loaded(self, rows, err):
         from .search import words_of
@@ -594,7 +598,9 @@ class App(DashboardApp):
 
         def work():
             try:
+                from ._shared.lmstudio import ensure_embedding
                 from .search import search_folders
+                ensure_embedding(*self._embed_args())
                 res, err = search_folders(idx, paths_by, q, level), ""
             except Exception as exc:
                 res, err = [], f"Search failed: {type(exc).__name__}: {exc}"

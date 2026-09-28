@@ -143,6 +143,14 @@ def update_index(settings: Settings, cat: Catalog, key: str) -> dict:
     return {"indexed": len(res), "embedded": len(todo)}
 
 
+def wake(settings) -> tuple[bool, str]:
+    """Start LM Studio and load the embedding model if needed (blocks up to ~45 s):
+    every query is embedded by LM Studio, so a fresh start cannot search by meaning."""
+    from ._shared.lmstudio import ensure_embedding
+    lm = settings.lm
+    return ensure_embedding(lm["lms_path"], lm["base_url"], lm["embedding_model"])
+
+
 class SearchIndex:
     """In-memory copy of the index for fast repeated queries (used by the panel)."""
 
