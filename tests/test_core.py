@@ -244,3 +244,33 @@ def test_sidecar_ownership_old_and_new_marker():
     assert is_ours(new.encode("utf-8"))
     assert is_ours(b'<rdf:Description photocat:Generator="photocat" />')
     assert not is_ours(b'<rdf:Description xmp:CreatorTool="digiKam" />')
+
+
+def test_photo_year_from_exif_only():
+    from photomancer.report import photo_year
+    assert photo_year({"datetime": "2019:07:14 18:02:11"}) == "2019"
+    assert photo_year({"datetime": "2021-03-05T09:00:00"}) == "2021"
+    assert photo_year({"datetime": "0000:00:00 00:00:00"}) == ""        # blank camera clock
+    assert photo_year({"datetime": None}) == "" and photo_year({}) == "" and photo_year(None) == ""
+
+
+def test_year_filter_choices_and_matching():
+    from photomancer.report import ALL_YEARS, NO_DATE, year_choices, year_matches
+    assert year_choices(["2019", "", "2021", "2019"]) == [ALL_YEARS, "2021", "2019", NO_DATE]
+    assert year_choices(["2020"]) == [ALL_YEARS, "2020"]                  # no 'No date' if none missing
+    assert year_matches("2019", ALL_YEARS) and year_matches("", ALL_YEARS)
+    assert year_matches("2019", "2019") and not year_matches("2020", "2019")
+    assert year_matches("", NO_DATE) and not year_matches("2019", NO_DATE)
+
+
+def test_catalog_rows_carry_the_exif_year(tmp_path):
+    from photomancer.report import catalog_rows
+    s = _settings(tmp_path)
+    cat = Catalog(s.db_path)
+    cat.conn.executemany("INSERT INTO files(path, sha256, missing) VALUES(?,?,0)",
+                         [("a.jpg", "sa"), ("b.jpg", "sb")])
+    cat.conn.execute("INSERT INTO exif(sha256, datetime) VALUES('sa', '2018:05:01 10:00:00')")
+    cat.conn.commit()
+    years = {r["path"]: r["year"] for r in catalog_rows(s, cat, "k")}
+    cat.close()
+    assert years == {"a.jpg": "2018", "b.jpg": ""}

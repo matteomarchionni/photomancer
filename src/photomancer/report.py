@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import random
+import re
 from collections import Counter
 from datetime import datetime
 
@@ -22,6 +23,30 @@ from .xmp_writer import build_tags, effective_results
 log = logging.getLogger("photomancer.report")
 
 PEOPLE_GENRES = {"portrait", "street", "sports_action", "events_celebrations"}
+
+ALL_YEARS, NO_DATE = "All years", "No date"
+
+
+def photo_year(exif: dict | None) -> str:
+    """Year the photo was taken, from EXIF DateTimeOriginal ('' when absent or bogus).
+
+    File metadata only, never the model: a blank camera clock (0000:00:00) counts as no date.
+    """
+    m = re.match(r"((?:18|19|20)\d{2})[:\-]", ((exif or {}).get("datetime") or "").strip())
+    return m.group(1) if m else ""
+
+
+def year_choices(years) -> list[str]:
+    """Browse filter values: 'All years', newest year first, then 'No date' if any is missing."""
+    ys = list(years)
+    out = [ALL_YEARS] + sorted({y for y in ys if y}, reverse=True)
+    return out + [NO_DATE] if any(not y for y in ys) else out
+
+
+def year_matches(year: str, choice: str) -> bool:
+    if choice in ("", ALL_YEARS):
+        return True
+    return not year if choice == NO_DATE else year == choice
 
 
 def catalog_rows(settings: Settings, cat: Catalog, key: str) -> list[dict]:
@@ -43,6 +68,7 @@ def catalog_rows(settings: Settings, cat: Catalog, key: str) -> list[dict]:
         d = {"file_id": f["file_id"], "path": f["path"], "sha256": sha,
              "width": f["width"], "height": f["height"]}
         d["exif"] = exif.get(sha) or {}
+        d["year"] = photo_year(d["exif"])
         d["stats"] = stats.get(sha) or {}
         d["colors"] = cols.get(sha, [])
         d["group_id"] = groups.get(sha)

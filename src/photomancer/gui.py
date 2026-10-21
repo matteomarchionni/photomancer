@@ -166,6 +166,7 @@ class App(DashboardApp):
         self.prompt_path = tk.StringVar(value=c.raw.get("prompt_file") or "")
         self.query = tk.StringVar()
         self.genre_f = tk.StringVar(value="All genres")
+        self.year_f = tk.StringVar(value="All years")
         self.only_low = tk.BooleanVar(value=False)
         self.only_fail = tk.BooleanVar(value=False)
         self.fquery = tk.StringVar()
@@ -295,6 +296,9 @@ class App(DashboardApp):
         self.genre_box = self.combo(bar, self.genre_f, ["All genres"], width=22)
         self.genre_box.pack(side="left", padx=(self.S(8), 0), ipady=self.S(3))
         self.genre_box.bind("<<ComboboxSelected>>", lambda e: self.apply_filter())
+        self.year_box = self.combo(bar, self.year_f, ["All years"], width=10)   # EXIF date taken
+        self.year_box.pack(side="left", padx=(self.S(8), 0), ipady=self.S(3))
+        self.year_box.bind("<<ComboboxSelected>>", lambda e: self.apply_filter())
         self.button(bar, "Search", self.apply_filter, "primary").pack(side="left", padx=(self.S(8), 0))
         opts = tk.Frame(lst, bg=T.SURFACE)
         opts.pack(fill="x", pady=(self.S(10), self.S(10)))
@@ -308,7 +312,7 @@ class App(DashboardApp):
         self.label(opts, "Top N", muted=True, size=9).pack(side="right")
         self.tree = self.make_tree(lst, [("match", 60, "Match"), ("genre", 140, "Genre"),
                                          ("sub", 150, "Subgenre"), ("conf", 55, "Conf."),
-                                         ("path", 500, "File")],
+                                         ("year", 55, "Year"), ("path", 500, "File")],
                                    on_select=self.on_select, on_double=self.open_selected)
         self.browse_note = self.hint(lst, 'Search by meaning, e.g. "cat", "foggy forest", '
                                           '"people at a wedding". Double-click opens the photo.')
@@ -393,6 +397,7 @@ class App(DashboardApp):
             return None, self.semantic_retry(query, exc)
 
     def _catalog_loaded(self, rows, err):
+        from .report import year_choices
         from .search import words_of
         self.rows = rows
         self.paths_by_sha, self.row_by_path = {}, {}
@@ -408,6 +413,10 @@ class App(DashboardApp):
             r["_words"] = words_of(r["_text"].replace("_", " "))
         genres = sorted({r["result"]["primary_genre"] for r in rows if r["result"]})
         self.genre_box["values"] = ["All genres"] + genres
+        years = year_choices(r["year"] for r in rows)
+        self.year_box["values"] = years
+        if self.year_f.get() not in years:
+            self.year_f.set("All years")
         if err:
             self.browse_note.config(text=err, fg=T.AMBER)
         self.apply_filter()
@@ -415,11 +424,13 @@ class App(DashboardApp):
             self.search_folders()
 
     def apply_filter(self):
+        from .report import year_matches
         from .search import words_of
         q = self.query.get().strip().lower()
         if q == self.spec.placeholder.lower():
             q = ""
         g = self.genre_f.get()
+        yr = self.year_f.get()
         low = float(self.cfg.report["low_confidence"])
         sem, why = self._semantic(q) if q else (None, "")
         scores, hits = sem if sem else ({}, set())
@@ -430,6 +441,8 @@ class App(DashboardApp):
             if self.only_fail.get() and res:
                 continue
             if g != "All genres" and (not res or res["primary_genre"] != g):
+                continue
+            if not year_matches(r["year"], yr):
                 continue
             if self.only_low.get() and (not res or res["genre_confidence"] >= low):
                 continue
@@ -452,7 +465,7 @@ class App(DashboardApp):
                 f"{scores[r['sha256']]:.2f}" if q and r["sha256"] in scores else "",
                 res.get("primary_genre", "failed" if r["error"] else "not tagged"),
                 res.get("subgenre", ""),
-                f"{res['genre_confidence']:.2f}" if res else "", r["path"]), tags=tags)
+                f"{res['genre_confidence']:.2f}" if res else "", r["year"], r["path"]), tags=tags)
             self.row_for_iid[iid] = r
         more = " (showing 5000)" if len(out) > 5000 else ""
         if self.rows:
