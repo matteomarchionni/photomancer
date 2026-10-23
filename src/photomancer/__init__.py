@@ -8,4 +8,4 @@ SQLite (in the data folder) is the master record; the XMP sidecars are an
 export of it and can be regenerated at any time.
 """
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
