@@ -15,6 +15,7 @@ from __future__ import annotations
 import hashlib
 import io
 import logging
+import multiprocessing
 import os
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -150,7 +151,10 @@ def run_prepare(settings: Settings, cat: Catalog, rows: Iterable, palette: dict,
         return {"ok": 0, "failed": 0}
     workers = max(1, min(int(settings.pre["workers"]), len(rows)))
     t0 = time.time()
-    ex = ProcessPoolExecutor(max_workers=workers)
+    # spawn, as on Windows and macOS: Linux's default fork copies the threads of
+    # an already-running process (the panel, numpy/BLAS pools) and a worker can
+    # deadlock on a lock one of them held - preparation then never finishes.
+    ex = ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context("spawn"))
     try:
         futs = [ex.submit(prepare_one, make_job(settings, palette, r)) for r in rows]
         for i, fut in enumerate(as_completed(futs), 1):
